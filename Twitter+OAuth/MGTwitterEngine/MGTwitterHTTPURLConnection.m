@@ -20,6 +20,13 @@
           requestType:(MGTwitterRequestType)requestType responseType:(MGTwitterResponseType)responseType
 {
     if (self = [super initWithRequest:request delegate:delegate]) {
+#if DEBUG
+		NSLog(@"HTTP method: %@", [request HTTPMethod]);
+		NSLog(@"HTTP URL: %@", [request URL]);
+		NSLog(@"HTTP headers: %@", [request allHTTPHeaderFields]);
+		NSLog(@"HTTP body: %@", [[[NSString alloc] initWithData: [request HTTPBody] encoding: NSUTF8StringEncoding] autorelease]);
+#endif
+		
         _data = [[NSMutableData alloc] initWithCapacity:0];
         _identifier = [[NSString stringWithNewUUID] retain];
         _requestType = requestType;
