@@ -13,6 +13,36 @@
 #import "MGTwitterParserDelegate.h"
 #import "MGTwitterEngineDelegate.h"
 
+@interface MJStackElement : NSObject
+{
+	id				_value;
+	MJStackElement*	_parent;
+}
+
+@property (nonatomic, retain) id				value;
+@property (nonatomic, retain) MJStackElement*	parent;
+
++ (MJStackElement*)stackElementWithValue: (id)value parent: (MJStackElement*)parent;
+
+- (id)initWithValue: (id)value parent: (MJStackElement*)parent;
+
+@end
+
+@interface MJStack : NSObject
+{
+	NSMutableArray*	_stack;
+}
+
+- (void)push: (MJStackElement*)obj;
+- (MJStackElement*)pop;
+- (MJStackElement*)top;
+
+- (MJStackElement*)findTopmostStackElementWithValueOfClass: (Class)cls;
+
+- (NSUInteger)size;
+
+@end
+
 @interface MGTwitterYAJLParser : NSObject {
 	__weak NSObject <MGTwitterParserDelegate> *delegate; // weak ref
 	NSString *identifier;
@@ -22,6 +52,7 @@
 	NSData *json;
 	NSMutableArray *parsedObjects;
 	MGTwitterEngineDeliveryOptions deliveryOptions;
+	MJStack*	_parserStack;
 	
 	yajl_handle _handle;
 }
@@ -48,6 +79,7 @@
 - (void)endDictionary;
 - (void)startArrayWithKey:(NSString *)key;
 - (void)endArray;
+- (void)dictionaryKeyChanged: (NSString*)key;
 
 // delegate callbacks
 - (void)_parsingDidEnd;

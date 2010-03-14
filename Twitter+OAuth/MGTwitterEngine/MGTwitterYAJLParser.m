@@ -7,6 +7,114 @@
 
 #import "MGTwitterYAJLParser.h"
 
+@implementation MJStackElement
+
+@synthesize value = _value;
+@synthesize parent = _parent;
+
++ (MJStackElement*)stackElementWithValue: (id)value parent: (MJStackElement*)parent
+{
+	return [[[MJStackElement alloc] initWithValue: value parent: parent] autorelease];
+}
+
+- (id)initWithValue: (id)value parent: (MJStackElement*)parent
+{
+	self = [super init];
+	
+	if (self)
+	{
+		_value = [value retain];
+		_parent = [parent retain];
+	}
+	
+	return self;
+}
+
+- (void)dealloc
+{
+	[_value release];
+	_value = nil;
+	
+	[_parent release];
+	_parent = nil;
+	
+	[super dealloc];
+}
+
+@end
+
+
+@implementation MJStack
+
+- (id)init
+{
+	self = [super init];
+	
+	if (self)
+	{
+		_stack = [[NSMutableArray alloc] initWithCapacity: 0];
+	}
+	
+	return self;
+}
+
+- (void)dealloc
+{
+	[_stack release];
+	_stack = nil;
+	
+	[super dealloc];
+}
+
+- (void)push: (MJStackElement*)obj
+{
+	[_stack addObject: obj];
+}
+
+- (MJStackElement*)pop
+{
+	id topObj = [self top];
+	
+	if (nil == topObj)
+	{
+#if DEBUG_PARSING
+		NSLog(@"%@ parser stack is empty!  Cannot pop empty stack.", NSStringFromClass([self class]));
+#endif
+		return nil;
+	}
+	
+	[[topObj retain] autorelease];
+	
+	[_stack removeLastObject];
+	
+	return topObj;
+}
+
+- (MJStackElement*)top
+{
+	return [_stack lastObject];
+}
+
+- (NSUInteger)size
+{
+	return [_stack count];
+}
+
+- (MJStackElement*)findTopmostStackElementWithValueOfClass: (Class)cls
+{
+	for (MJStackElement* stackElement in [_stack reverseObjectEnumerator])
+	{
+		if ([stackElement.value isKindOfClass: cls] == YES)
+		{
+			return stackElement;
+		}
+	}
+	
+	return nil;
+}
+
+@end
+
 
 @implementation MGTwitterYAJLParser
 
@@ -44,13 +152,26 @@ int process_yajl_boolean(void * ctx, int boolVal)
 int process_yajl_number(void *ctx, const char *numberVal, unsigned int numberLen)
 {
 	id self = ctx;
-  
-	if (currentKey)
+	
+	//if (currentKey)
 	{
 		NSString *stringValue = [[NSString alloc] initWithBytesNoCopy:(void *)numberVal length:numberLen encoding:NSUTF8StringEncoding freeWhenDone:NO];
-
-		NSNumber *longLongValue = [NSNumber numberWithLongLong:[stringValue longLongValue]];
-		[self addValue:longLongValue forKey:currentKey];
+	
+		NSLog(@"yajl_number = %@", stringValue);
+		
+		//NSNumber *longLongValue = [NSNumber numberWithLongLong:[stringValue longLongValue]];
+		NSNumber*	numberValue = nil;
+		
+		if ([stringValue rangeOfString: @"."].location == NSNotFound)
+		{
+			numberValue = [NSNumber numberWithLongLong: [stringValue longLongValue]];
+		}
+		else
+		{
+			numberValue = [NSNumber numberWithDouble: [stringValue doubleValue]];
+		}
+		
+		[self addValue: numberValue forKey:currentKey];
 
 		[stringValue release];
 
@@ -115,6 +236,10 @@ int process_yajl_map_key(void *ctx, const unsigned char * stringVal, unsigned in
 	
 	currentKey = [[NSString alloc] initWithBytes:stringVal length:stringLen encoding:NSUTF8StringEncoding];
 
+	id self = ctx;
+	
+	[self dictionaryKeyChanged: currentKey];
+	
     return 1;
 }
 
@@ -203,6 +328,7 @@ static yajl_callbacks callbacks = {
 		URL = [theURL retain];
 		deliveryOptions = theDeliveryOptions;
 		delegate = theDelegate;
+		_parserStack = [[MJStack alloc] init];
 		
 		if (deliveryOptions & MGTwitterEngineDeliveryAllResultsOption)
 		{
@@ -275,6 +401,9 @@ static yajl_callbacks callbacks = {
 
 - (void)dealloc
 {
+	[_parserStack release];
+	_parserStack = nil;
+	
 	[parsedObjects release];
 	[json release];
 	[identifier release];
@@ -326,6 +455,12 @@ static yajl_callbacks callbacks = {
 	NSLog(@"array end");
 }
 
+- (void)dictionaryKeyChanged: (NSString*)key
+{
+	// default implementation -- override in subclasses
+	
+	NSLog(@"dictionary key changed to %@", key);
+}
 
 #pragma mark Delegate callbacks
 
