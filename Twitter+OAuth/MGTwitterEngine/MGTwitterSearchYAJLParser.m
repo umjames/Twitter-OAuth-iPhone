@@ -8,7 +8,7 @@
 
 #import "MGTwitterSearchYAJLParser.h"
 
-#define DEBUG_PARSING 1
+#define DEBUG_PARSING 0
 
 @interface MGTwitterSearchYAJLParser ()
 
@@ -273,11 +273,11 @@
 {
 #if DEBUG_PARSING
 	NSLog(@"search: dictionary key = %@", key);
+#endif
 	
 	MJStackElement*	stackElement = [MJStackElement stackElementWithValue: key parent: [_parserStack top]];
 	
 	[_parserStack push: stackElement];
-#endif
 }
 
 - (void)dealloc

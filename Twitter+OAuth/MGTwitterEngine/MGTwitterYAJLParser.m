@@ -157,7 +157,9 @@ int process_yajl_number(void *ctx, const char *numberVal, unsigned int numberLen
 	{
 		NSString *stringValue = [[NSString alloc] initWithBytesNoCopy:(void *)numberVal length:numberLen encoding:NSUTF8StringEncoding freeWhenDone:NO];
 	
+#if DEBUG_PARSING
 		NSLog(@"yajl_number = %@", stringValue);
+#endif
 		
 		//NSNumber *longLongValue = [NSNumber numberWithLongLong:[stringValue longLongValue]];
 		NSNumber*	numberValue = nil;
