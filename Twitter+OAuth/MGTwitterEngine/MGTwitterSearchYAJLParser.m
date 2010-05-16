@@ -60,6 +60,18 @@
 	return YES;
 }
 
+- (NSString*)currentKey
+{
+	MJStackElement*	topElem = [_parserStack findTopmostStackElementWithValueOfClass: [NSString class]];
+
+	if (nil != topElem)
+	{
+		return (NSString*)topElem.value;
+	}
+
+	return nil;
+}
+
 - (void)addValue:(id)value forKey:(NSString *)key
 {
 #if DEBUG_PARSING
@@ -275,7 +287,11 @@
 	NSLog(@"search: dictionary key = %@", key);
 #endif
 	
-	MJStackElement*	stackElement = [MJStackElement stackElementWithValue: key parent: [_parserStack top]];
+	NSString*	keyCopy = [key copy];
+	
+	MJStackElement*	stackElement = [MJStackElement stackElementWithValue: keyCopy parent: [_parserStack top]];
+	
+	[keyCopy release];
 	
 	[_parserStack push: stackElement];
 }

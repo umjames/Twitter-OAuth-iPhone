@@ -80,6 +80,7 @@
 - (void)startArrayWithKey:(NSString *)key;
 - (void)endArray;
 - (void)dictionaryKeyChanged: (NSString*)key;
+- (NSString*)currentKey;
 
 // delegate callbacks
 - (void)_parsingDidEnd;

@@ -122,6 +122,11 @@
 
 static NSString *currentKey;
 
+- (NSString*)currentKey
+{
+	return currentKey;
+}
+
 int process_yajl_null(void *ctx)
 {
 	id self = ctx;
@@ -173,7 +178,7 @@ int process_yajl_number(void *ctx, const char *numberVal, unsigned int numberLen
 			numberValue = [NSNumber numberWithDouble: [stringValue doubleValue]];
 		}
 		
-		[self addValue: numberValue forKey:currentKey];
+		[self addValue: numberValue forKey: [self currentKey]];
 
 		[stringValue release];
 
